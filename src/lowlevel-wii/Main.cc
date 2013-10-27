@@ -20,6 +20,12 @@
 #include <iostream>
 #include <SDL.h>  // Necessary on some systems for SDLMain.
 
+#include <fat.h>
+
+#ifdef DEBUG
+#include <debug.h>
+#endif
+
 static void print_help(int argc, char** argv);
 
 /**
@@ -47,7 +53,17 @@ static void print_help(int argc, char** argv);
  */
 int main(int argc, char** argv) {
 
+#ifdef DEBUG
+  // attach debugger
+  DEBUG_Init(GDBSTUB_DEVICE_USB, 1);
+
+  _break();
+#endif
+
   std::cout << "Solarus " << SOLARUS_VERSION << std::endl;
+
+  // initialise Filesystem
+  fatInitDefault();
 
   // check the -help option
   bool help = false;
