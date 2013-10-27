@@ -21,9 +21,15 @@
 #include <string>
 #include <list>
 #include <map>
+#ifdef GEKKO
+
+#include "wii/flux.h"
+#include <tremor/ivorbisfile.h>
+#else
 #include <al.h>
 #include <alc.h>
 #include <vorbis/vorbisfile.h>
+#endif
 
 /**
  * \brief Represents a sound effect that can be played in the program.
@@ -73,8 +79,10 @@ class Sound {
 
   private:
 
+#ifndef GEKKO
     static ALCdevice* device;
     static ALCcontext* context;
+#endif
 
     std::string id;                              /**< id of this sound */
     ALuint buffer;                               /**< the OpenAL buffer containing the PCM decoded data of this sound */

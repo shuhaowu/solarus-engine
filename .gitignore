@@ -25,7 +25,6 @@ work/unversioned/
 CMakeCache.txt
 install_manifest.txt
 CMakeFiles/
-Makefile
 cmake_install.cmake
 include/config.h
 libsolarus_static.a
@@ -33,3 +32,7 @@ libsolarus_static.a
 error.txt
 build/
 gcwbuild/
+
+# wii build
+*.elf
+*.dol
