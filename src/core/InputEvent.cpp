@@ -415,6 +415,20 @@ bool InputEvent::is_joypad_button_down(int button) {
     return false;
   }
 
+#ifdef __SWITCH__
+  /* Swap stick buttons to +/- for better accessibility */
+  switch (button) {
+    case 4:
+    case 5:
+      button += 6;
+      break;
+    case 10:
+    case 11:
+      button -= 6;
+      break;
+  }
+#endif
+
   return SDL_JoystickGetButton(joystick, button) != 0;
 }
 
@@ -983,7 +997,23 @@ int InputEvent::get_joypad_button() const {
     return -1;
   }
 
-  return internal_event.jbutton.button;
+  int button = internal_event.jbutton.button;
+
+#ifdef __SWITCH__
+  /* Swap stick buttons to +/- for better accessibility */
+  switch (button) {
+    case 4:
+    case 5:
+      button += 6;
+      break;
+    case 10:
+    case 11:
+      button -= 6;
+      break;
+  }
+#endif
+
+  return button;
 }
 
 /**
