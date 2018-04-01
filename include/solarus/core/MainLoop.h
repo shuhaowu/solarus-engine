@@ -84,6 +84,7 @@ class SOLARUS_API MainLoop {
     bool turbo;                   /**< Whether to run the simulation as fast as possible
                                    * rather than following real time. */
 
+#ifndef __SWITCH__
     std::thread stdin_thread;     /**< Separate thread that reads Lua commands on stdin. */
     std::vector<std::string>
         lua_commands;             /**< Lua commands to run next cycle. */
@@ -91,6 +92,7 @@ class SOLARUS_API MainLoop {
         lua_commands_mutex;       /**< Lock for the list of scheduled Lua commands. */
     int num_lua_commands_pushed;  /**< Counter of Lua commands requested. */
     int num_lua_commands_done;    /**< Counter of Lua commands executed. */
+#endif
 
 };
 

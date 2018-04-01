@@ -41,6 +41,17 @@ Arguments::Arguments(int argc, char** argv) {
       args.push_back(argv[i]);
     }
   }
+#ifdef __SWITCH__
+  if (!argc) {
+    // Ryujinx does not set the executable name
+    program_name = "sdmc:/switch/solarus/solarus.nro";
+    // speed up engine
+    args.push_back("-turbo=yes");
+  }
+  args.push_back("-video-acceleration=no");
+  args.push_back("-quest-size=400x240");
+  args.push_back("-no-audio");
+#endif
 }
 
 /**

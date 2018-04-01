@@ -153,7 +153,13 @@ void create_window(const Arguments& args) {
  * \brief Creates the list of software video modes.
  */
 void initialize_software_video_modes() {
-
+#ifdef __SWITCH__
+  context.all_video_modes.emplace_back(
+        "normal3x",
+        context.geometry.quest_size * 3,
+        nullptr
+        );
+#else
   context.all_video_modes.emplace_back(
         "normal",
         context.geometry.quest_size * 2,
@@ -179,6 +185,7 @@ void initialize_software_video_modes() {
         context.geometry.quest_size * 4,
         std::unique_ptr<SoftwarePixelFilter>(new Hq4xFilter())
         );
+#endif
 
   context.default_video_mode = &context.all_video_modes[0];
 
@@ -552,7 +559,11 @@ void set_fullscreen(bool fullscreen) {
   if (context.fullscreen_window != fullscreen) {
     Uint32 fullscreen_flag;
     if (fullscreen) {
+#ifdef __SWITCH__
+      fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+#else
       fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
       context.geometry.window_size = get_window_size();  // Store the window size before fullscreen.
     }
     else {
