@@ -20,6 +20,7 @@
 #include "solarus/Arguments.h"
 #include "solarus/CurrentQuest.h"
 #include "solarus/QuestProperties.h"
+#define PHYSFS_DEPRECATED // disable physfs 2→3 deprecation warnings
 #include <physfs.h>
 #include <fstream>
 #include <cstdlib>  // exit(), mkstemp(), tmpnam()
@@ -297,7 +298,8 @@ SOLARUS_API std::string data_file_read(
   );
   PHYSFS_file* file = PHYSFS_openRead(full_file_name.c_str());
   Debug::check_assertion(file != nullptr,
-      std::string("Cannot open data file '") + full_file_name + "'"
+      std::string("Cannot open data file '") + full_file_name + "': "
+      + PHYSFS_getLastError()
   );
 
   // load it into memory

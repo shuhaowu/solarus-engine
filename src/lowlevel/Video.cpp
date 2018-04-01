@@ -164,6 +164,26 @@ void initialize_video_modes() {
   shaders_enabled = rendertarget_supported && Video::is_acceleration_enabled() && ShaderContext::initialize();
 
   // Initialize hardcoded video modes.
+#ifdef __SWITCH__
+  all_video_modes.emplace_back(
+      "simple3x",
+      quest_size * 3,
+      nullptr,
+      nullptr
+  );
+  // all_video_modes.emplace_back(
+  //     "scale3x",
+  //     quest_size * 3,
+  //     std::unique_ptr<PixelFilter>(new Scale3xFilter()),
+  //     nullptr
+  // );
+  // all_video_modes.emplace_back(
+  //     "hq3x",
+  //     quest_size * 3,
+  //     std::unique_ptr<PixelFilter>(new Hq3xFilter()),
+  //     nullptr
+  // );
+#else
   all_video_modes.emplace_back(
       "normal",
       quest_size * 2,
@@ -194,6 +214,7 @@ void initialize_video_modes() {
       std::unique_ptr<PixelFilter>(new Hq4xFilter()),
       nullptr
   );
+#endif
   default_video_mode = &all_video_modes[0];
   // TODO If shaders are enabled, use a C++ shader version of Scale2x and Hq4x instead.
 
@@ -552,7 +573,11 @@ bool Video::set_video_mode(const VideoMode& mode, bool fullscreen) {
 
   Uint32 fullscreen_flag;
   if (fullscreen) {
+#ifdef __SWITCH__
+    fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+#else
     fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
+#endif
     window_size = get_window_size();  // Store the window size before fullscreen.
   }
   else {

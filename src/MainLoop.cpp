@@ -38,6 +38,10 @@
 #include <string>
 #include <thread>
 
+#ifdef __SWITCH__
+#include <switch.h>
+#endif
+
 namespace Solarus {
 
 namespace {
@@ -120,11 +124,24 @@ MainLoop::MainLoop(const Arguments& args):
   next_game(nullptr),
   exiting(false),
   debug_lag(0),
-  turbo(false),
+  turbo(false)
+#ifndef __SWITCH__
+  ,
   lua_commands(),
   lua_commands_mutex(),
   num_lua_commands_pushed(0),
-  num_lua_commands_done(0) {
+  num_lua_commands_done(0)
+#endif
+  {
+  // early init SDL
+  SDL_Init(SDL_INIT_VIDEO);
+
+#ifdef __SWITCH__
+  //consoleDebugInit(debugDevice_SVC);
+  //consoleInit(NULL);
+  //printf("init...\n");
+  //stdout = stderr;
+#endif
 
   Logger::info(std::string("Solarus ") + SOLARUS_VERSION);
 
@@ -175,15 +192,16 @@ MainLoop::MainLoop(const Arguments& args):
   lua_context->initialize();
 
   // Set up the Lua console.
+#ifndef __SWITCH__
   const std::string& lua_console_arg = args.get_argument_value("-lua-console");
   const bool enable_lua_console = lua_console_arg.empty() || lua_console_arg == "yes";
   if (enable_lua_console) {
     Logger::info("Lua console: yes");
     initialize_lua_console();
   }
-  else {
+  else
+#endif
     Logger::info("Lua console: no");
-  }
 
   // Finally show the window.
   Video::show_window();
@@ -210,7 +228,9 @@ MainLoop::~MainLoop() {
   CurrentQuest::quit();
   QuestFiles::close_quest();
   System::quit();
+#ifndef __SWITCH__
   quit_lua_console();
+#endif
 }
 
 /**
@@ -287,6 +307,7 @@ void MainLoop::set_game(Game* game) {
   this->next_game = game;
 }
 
+#ifndef __SWITCH__
 /**
  * \brief Schedules a Lua command to be executed at the next cycle.
  *
@@ -302,6 +323,7 @@ int MainLoop::push_lua_command(const std::string& command) {
   lua_commands.push_back(command);
   return num_lua_commands_pushed++;
 }
+#endif
 
 /**
  * \brief Runs the main loop until the user requests to stop the program.
@@ -328,7 +350,11 @@ void MainLoop::run() {
   // check_input(), update(), draw() and sleep().
   // Each call to update() makes the simulated time advance one fixed step.
 
-  while (!is_exiting()) {
+  while (!is_exiting()
+#ifdef __SWITCH__
+    && appletMainLoop()
+#endif
+    ) {
 
     // Measure the time of the last iteration.
     uint32_t now = System::get_real_time() - time_dropped;
@@ -412,6 +438,7 @@ void MainLoop::check_input() {
     event = InputEvent::get_event();
   }
 
+#ifndef __SWITCH__
   // Check Lua requests.
   if (!lua_commands.empty()) {
     std::lock_guard<std::mutex> lock(lua_commands_mutex);
@@ -431,6 +458,7 @@ void MainLoop::check_input() {
     }
     lua_commands.clear();
   }
+#endif
 }
 
 /**
@@ -532,7 +560,7 @@ void MainLoop::load_quest_properties() {
   );
 
 }
-
+#ifndef __SWITCH__
 /**
  * \brief Enables accepting standard input lines as Lua commands.
  */
@@ -571,5 +599,6 @@ void MainLoop::quit_lua_console() {
 
   stdin_thread.join();
 }
+#endif
 
 }
