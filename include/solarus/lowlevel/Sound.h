@@ -23,6 +23,7 @@
 #include <map>
 #include <al.h>
 #include <alc.h>
+#define OV_EXCLUDE_STATIC_CALLBACKS // disables warnings
 #include <vorbis/vorbisfile.h>
 
 namespace Solarus {

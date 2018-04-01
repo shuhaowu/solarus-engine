@@ -13,6 +13,11 @@ Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA */
 
 //// Memory access
 
+#ifdef __SWITCH__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#endif
+
 #if SPC_MORE_ACCURACY
 	#define SUSPICIOUS_OPCODE( name ) ((void) 0)
 #else
@@ -1218,3 +1223,7 @@ stop:
 	}
 }
 SPC_CPU_RUN_FUNC_END
+
+#ifdef __SWITCH__
+#pragma GCC diagnostic pop
+#endif
