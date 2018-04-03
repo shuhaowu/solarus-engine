@@ -92,6 +92,9 @@ void create_window() {
 #if SOLARUS_HAVE_OPENGL == 1
       | SDL_WINDOW_OPENGL
 #endif
+#ifdef __SWITCH__
+      | SDL_WINDOW_FULLSCREEN
+#endif
   );
   Debug::check_assertion(main_window != nullptr,
       std::string("Cannot create the window: ") + SDL_GetError());
@@ -159,15 +162,11 @@ void create_window() {
  * Some video modes are hardcoded, and some others may be added by the quest.
  */
 void initialize_video_modes() {
-
-  // Decide whether we enable shaders.
-  shaders_enabled = rendertarget_supported && Video::is_acceleration_enabled() && ShaderContext::initialize();
-
-  // Initialize hardcoded video modes.
 #ifdef __SWITCH__
+  // Initialize hardcoded video modes.
   all_video_modes.emplace_back(
-      "simple3x",
-      quest_size * 3,
+      "simple",
+      quest_size,
       nullptr,
       nullptr
   );
@@ -184,6 +183,10 @@ void initialize_video_modes() {
   //     nullptr
   // );
 #else
+  // Decide whether we enable shaders.
+  shaders_enabled = rendertarget_supported && Video::is_acceleration_enabled() && ShaderContext::initialize();
+
+  // Initialize hardcoded video modes.
   all_video_modes.emplace_back(
       "normal",
       quest_size * 2,
@@ -218,6 +221,7 @@ void initialize_video_modes() {
   default_video_mode = &all_video_modes[0];
   // TODO If shaders are enabled, use a C++ shader version of Scale2x and Hq4x instead.
 
+#ifndef __SWITCH__
   // Initialize quest custom video modes. These can only include shaded modes.
   if (shaders_enabled) {
 
@@ -259,6 +263,7 @@ void initialize_video_modes() {
       }
     }
   }
+#endif
 
   // Everything is ready now.
   Video::set_default_video_mode();
@@ -323,7 +328,9 @@ void Video::quit() {
     return;
   }
 
+#ifndef __SWITCH__
   ShaderContext::quit();
+#endif
 
   if (is_fullscreen()) {
     // Get back on desktop before destroy the window.
@@ -572,17 +579,18 @@ bool Video::set_video_mode(const VideoMode& mode, bool fullscreen) {
   }
 
   Uint32 fullscreen_flag;
-  if (fullscreen) {
 #ifdef __SWITCH__
     fullscreen_flag = SDL_WINDOW_FULLSCREEN;
+    window_size = get_window_size();
 #else
+  if (fullscreen) {
     fullscreen_flag = SDL_WINDOW_FULLSCREEN_DESKTOP;
-#endif
     window_size = get_window_size();  // Store the window size before fullscreen.
   }
   else {
     fullscreen_flag = 0;
   }
+#endif
 
   video_mode = &mode;
   fullscreen_window = fullscreen;
