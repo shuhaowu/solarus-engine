@@ -50,7 +50,6 @@ Arguments::Arguments(int argc, char** argv) {
   }
   args.push_back("-video-acceleration=no");
   args.push_back("-quest-size=400x240");
-  args.push_back("-no-audio");
 #endif
 }
 
