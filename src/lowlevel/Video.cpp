@@ -162,29 +162,10 @@ void create_window() {
  * Some video modes are hardcoded, and some others may be added by the quest.
  */
 void initialize_video_modes() {
-#ifdef __SWITCH__
-  // Initialize hardcoded video modes.
-  all_video_modes.emplace_back(
-      "simple",
-      quest_size,
-      nullptr,
-      nullptr
-  );
-  // all_video_modes.emplace_back(
-  //     "scale3x",
-  //     quest_size * 3,
-  //     std::unique_ptr<PixelFilter>(new Scale3xFilter()),
-  //     nullptr
-  // );
-  // all_video_modes.emplace_back(
-  //     "hq3x",
-  //     quest_size * 3,
-  //     std::unique_ptr<PixelFilter>(new Hq3xFilter()),
-  //     nullptr
-  // );
-#else
+#ifndef __SWITCH__
   // Decide whether we enable shaders.
   shaders_enabled = rendertarget_supported && Video::is_acceleration_enabled() && ShaderContext::initialize();
+#endif
 
   // Initialize hardcoded video modes.
   all_video_modes.emplace_back(
@@ -211,6 +192,7 @@ void initialize_video_modes() {
       std::unique_ptr<PixelFilter>(new Hq3xFilter()),
       nullptr
   );
+#ifndef __SWITCH__
   all_video_modes.emplace_back(
       "hq4x",
       quest_size * 4,

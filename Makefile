@@ -32,12 +32,12 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	solarus
 BUILD		:=	build
 SOURCES		:=	src src/entities src/hero src/lowlevel src/lua src/main src/movements \
-				src/third_party/snes_spc src/third_party/mojoAL
+				src/third_party/snes_spc src/third_party/mojoAL src/third_party/hqx
 DATA		:=	data
 INCLUDES	:=	include include/solarus include/solarus/hero include/solarus/entities \
 				include/solarus/lowlevel include/solarus/lua include/solarus/movements \
 				include/solarus/containers include/solarus/third_party/snes_spc \
-				include/solarus/third_party/mojoAL/AL
+				include/solarus/third_party/mojoAL/AL include/solarus/third_party
 EXEFS_SRC	:=	exefs_src
 
 APP_TITLE	:=	Solarus Engine
@@ -60,7 +60,8 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=	-lSDL2_ttf -lfreetype -lbz2 -lSDL2_image -lpng -lz -ljpeg -lSDL2 \
-			-llua -lphysfs -lmodplug -lvorbisfile -lvorbis -logg -lnx
+			-llua -lphysfs -lmodplug -lvorbisfile -lvorbis -logg \
+			-lglad -lEGL -lglapi -ldrm_nouveau -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
