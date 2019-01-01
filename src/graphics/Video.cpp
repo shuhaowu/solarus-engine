@@ -156,13 +156,6 @@ void create_window(const Arguments& args) {
  * \brief Creates the list of software video modes.
  */
 void initialize_software_video_modes() {
-#ifdef __SWITCH__
-  context.all_video_modes.emplace_back(
-        "normal1x",
-        context.geometry.quest_size,
-        nullptr
-        );
-#else
   context.all_video_modes.emplace_back(
         "normal",
         context.geometry.quest_size * 2,
@@ -183,6 +176,7 @@ void initialize_software_video_modes() {
         context.geometry.quest_size * 3,
         std::unique_ptr<SoftwarePixelFilter>(new Hq3xFilter())
         );
+#ifndef __SWITCH__
   context.all_video_modes.emplace_back(
         "hq4x",
         context.geometry.quest_size * 4,

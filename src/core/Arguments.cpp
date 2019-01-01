@@ -48,7 +48,7 @@ Arguments::Arguments(int argc, char** argv) {
     // speed up engine
     args.push_back("-turbo=yes");
   }
-  args.push_back("-force-software-rendering");
+  // args.push_back("-force-software-rendering");
   args.push_back("-quest-size=400x240");
 #endif
 }
