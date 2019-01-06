@@ -49,12 +49,6 @@ namespace {
  * absolute or relative to the current directory. */
 std::string quest_path_;
 
-/**
- * \brief Directory where the engine can write files,
- * relative to the user's home.
- */
-std::string solarus_write_dir_;
-
 /**<
  * \brief Write directory of the current quest,
  * relative to solarus_write_dir.
@@ -77,28 +71,12 @@ std::vector<std::string> temporary_files_;
  * \param solarus_write_dir The directory where the engine can write files,
  * relative to the base write directory.
  */
-void set_solarus_write_dir(const std::string& solarus_write_dir) {
-
-  // This setting never changes at runtime.
-  // Allowing to change it would be complex and we don't need that.
-  Debug::check_assertion(solarus_write_dir_.empty(),
-      "The Solarus write directory is already set");
-
-  solarus_write_dir_ = solarus_write_dir;
-
+void set_solarus_write_dir() {
   // First check that we can write in a directory.
   if (!PHYSFS_setWriteDir(get_base_write_dir().c_str())) {
      Debug::die(std::string("Cannot write in user directory '")
-         + get_base_write_dir().c_str() + "': " + PHYSFS_getLastError());
-  }
-
-  // Create the directory.
-  PHYSFS_mkdir(solarus_write_dir.c_str());
-
-  const std::string& full_write_dir = get_base_write_dir() + "/" + solarus_write_dir;
-  if (!PHYSFS_setWriteDir(full_write_dir.c_str())) {
-    Debug::die(std::string("Cannot set Solarus write directory to '")
-        + full_write_dir + "': " + PHYSFS_getLastError());
+         + get_base_write_dir().c_str() + "': "
+         + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
   }
 
   // The quest subdirectory may be new, create it if needed.
@@ -135,6 +113,12 @@ SOLARUS_API bool open_quest(const std::string& program_name, const std::string& 
 
   quest_path_ = quest_path;
 
+  const std::string& base_dir = PHYSFS_getBaseDir();
+#ifdef __SWITCH__
+  PHYSFS_mount((base_dir + "data").c_str(), NULL, 1);
+  PHYSFS_mount((base_dir + "data.solarus").c_str(), NULL, 1);
+  PHYSFS_mount((base_dir + "data.solarus.zip").c_str(), NULL, 1);
+#else
   //Allow physfs to follow symbolic links
   PHYSFS_permitSymbolicLinks(true);
 
@@ -146,17 +130,17 @@ SOLARUS_API bool open_quest(const std::string& program_name, const std::string& 
   std::string archive_quest_path_1 = quest_path + "/data.solarus";
   std::string archive_quest_path_2 = quest_path + "/data.solarus.zip";
 
-  const std::string& base_dir = PHYSFS_getBaseDir();
   PHYSFS_addToSearchPath(dir_quest_path.c_str(), 1);   // data directory
   PHYSFS_addToSearchPath(archive_quest_path_1.c_str(), 1); // data.solarus archive
   PHYSFS_addToSearchPath(archive_quest_path_2.c_str(), 1); // data.solarus.zip archive
   PHYSFS_addToSearchPath((base_dir + "/" + dir_quest_path).c_str(), 1);
   PHYSFS_addToSearchPath((base_dir + "/" + archive_quest_path_1).c_str(), 1);
   PHYSFS_addToSearchPath((base_dir + "/" + archive_quest_path_2).c_str(), 1);
+#endif
 
 
   // Set the engine root write directory.
-  set_solarus_write_dir(SOLARUS_WRITE_DIR);
+  set_solarus_write_dir();
 
   if (!quest_exists()) {
     return false;
@@ -183,7 +167,6 @@ SOLARUS_API void close_quest() {
   remove_temporary_files();
 
   quest_path_ = "";
-  solarus_write_dir_ = "";
   quest_write_dir_ = "";
 
   PHYSFS_deinit();
@@ -314,15 +297,15 @@ SOLARUS_API std::string data_file_read(
   );
   PHYSFS_file* file = PHYSFS_openRead(file_name.c_str());
   Debug::check_assertion(file != nullptr,
-      std::string("Cannot open data file '") + file_name + ": "
-      + PHYSFS_getLastError()
+      std::string("Cannot open data file '") + file_name + "': "
+      + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode())
   );
 
   // Load it into memory.
   size_t size =  static_cast<size_t>(PHYSFS_fileLength(file));
   std::vector<char> buffer(size);
 
-  PHYSFS_read(file, buffer.data(), 1, (PHYSFS_uint32) size);
+  PHYSFS_readBytes(file, buffer.data(), size);
   PHYSFS_close(file);
 
   return std::string(buffer.data(), size);
@@ -355,14 +338,14 @@ SOLARUS_API void data_file_save(
   PHYSFS_file* file = PHYSFS_openWrite(file_name.c_str());
   if (file == nullptr) {
     Debug::die(std::string("Cannot open file '") + file_name
-        + "' for writing: " + PHYSFS_getLastError()
+        + "' for writing: " + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode())
     );
   }
 
   // save the memory buffer
-  if (PHYSFS_write(file, buffer.data(), (PHYSFS_uint32) buffer.size(), 1) == -1) {
+  if (PHYSFS_writeBytes(file, buffer.data(), buffer.size()) == -1) {
     Debug::die(std::string("Cannot write file '") + file_name + "': "
-        + PHYSFS_getLastError());
+        + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
   }
   PHYSFS_close(file);
 }
@@ -428,22 +411,20 @@ SOLARUS_API std::vector<std::string> data_file_list_dir(
   std::vector<std::string> result;
   if (PHYSFS_exists(dir_path.c_str())) {
     char** files = PHYSFS_enumerateFiles(dir_path.c_str());
-    for (char** file = files; *file != nullptr; ++file) {
-      result.push_back(std::string(*file));
+    for (char** file = files; *file != nullptr; file++) {
+
+      PHYSFS_Stat statbuf;
+      PHYSFS_stat((dir_path + "/" + *file).c_str(), &statbuf);
+      bool is_directory = (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
+      bool is_symlink = (statbuf.filetype == PHYSFS_FILETYPE_SYMLINK);
+      if (!is_symlink && ((list_files && !is_directory)
+              || (list_directories && is_directory)))
+        result.push_back(std::string(*file));
     }
     PHYSFS_freeList(files);
   }
 
   return result;
-}
-
-/**
- * \brief Returns the directory where the engine can write files.
- * \returns The directory where the engine can write files, relative to the
- * base write directory.
- */
-SOLARUS_API const std::string& get_solarus_write_dir() {
-  return solarus_write_dir_;
 }
 
 /**
@@ -473,17 +454,17 @@ SOLARUS_API void set_quest_write_dir(const std::string& quest_write_dir) {
   if (!quest_write_dir_.empty()) {
     // There was already a previous quest subdirectory: remove it from the
     // search path.
-    PHYSFS_removeFromSearchPath(PHYSFS_getWriteDir());
+    PHYSFS_unmount(PHYSFS_getWriteDir());
   }
 
   quest_write_dir_ = quest_write_dir;
 
   // Reset the write directory to the Solarus directory
   // so that we can create the new quest subdirectory.
-  std::string full_write_dir = get_base_write_dir() + "/" + solarus_write_dir_;
+  std::string full_write_dir = get_base_write_dir();
   if (!PHYSFS_setWriteDir(full_write_dir.c_str())) {
     Debug::die(std::string("Cannot set Solarus write directory to '")
-        + full_write_dir + "': " + PHYSFS_getLastError());
+        + full_write_dir + "': " + PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
   }
 
   if (!quest_write_dir.empty()) {
@@ -492,11 +473,11 @@ SOLARUS_API void set_quest_write_dir(const std::string& quest_write_dir) {
     PHYSFS_mkdir(quest_write_dir.c_str());
 
     // Set the write directory to this new place.
-    full_write_dir = get_base_write_dir() + "/" + solarus_write_dir_ + "/" + quest_write_dir;
+    full_write_dir = get_base_write_dir() + quest_write_dir;
     PHYSFS_setWriteDir(full_write_dir.c_str());
 
     // Also allow the quest to read savegames, settings and data files there.
-    PHYSFS_addToSearchPath(PHYSFS_getWriteDir(), 0);
+    PHYSFS_mount(PHYSFS_getWriteDir(), NULL, 0);
   }
 }
 
@@ -504,7 +485,7 @@ SOLARUS_API void set_quest_write_dir(const std::string& quest_write_dir) {
  * \brief Returns the absolute path of the quest write directory.
  */
 SOLARUS_API std::string get_full_quest_write_dir() {
-  return get_base_write_dir() + "/" + get_solarus_write_dir() + "/" + get_quest_write_dir();
+  return get_base_write_dir() + get_quest_write_dir();
 }
 
 /**
@@ -521,7 +502,7 @@ SOLARUS_API std::string get_base_write_dir() {
           SDL_free(base_path);
           return path;
 #else
-  return std::string(PHYSFS_getUserDir());
+  return std::string(PHYSFS_getPrefDir("solarus", "engine"));
 #endif
 }
 
