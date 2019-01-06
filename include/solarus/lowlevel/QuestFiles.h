@@ -85,7 +85,6 @@ SOLARUS_API std::vector<std::string> data_files_enumerate(
 
 // Writing files.
 SOLARUS_API std::string get_base_write_dir();
-SOLARUS_API const std::string& get_solarus_write_dir();
 SOLARUS_API const std::string& get_quest_write_dir();
 SOLARUS_API void set_quest_write_dir(const std::string& quest_write_dir);
 SOLARUS_API std::string get_full_quest_write_dir();
