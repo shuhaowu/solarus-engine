@@ -11,3 +11,8 @@ developer_doc/1.*
 work/unversioned/
 build/
 
+*.nacp
+*.nro
+*.elf
+*.nso
+*.pfs0

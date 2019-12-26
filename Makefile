@@ -59,9 +59,12 @@ CXXFLAGS	:= $(CFLAGS) -frtti -fexceptions -std=c++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=	-lSDL2_ttf -lfreetype -lbz2 -lSDL2_image -lpng -lz -ljpeg -lSDL2 \
-			-llua -lphysfs -lmodplug -lvorbisfile -lvorbis -logg \
-			-lglad -lEGL -lglapi -ldrm_nouveau -lnx
+LIBS := `$(DEVKITPRO)/portlibs/switch/bin/aarch64-none-elf-pkg-config lua SDL2_ttf SDL2_image physfs libmodplug vorbisfile --libs-only-l`
+
+# ORIGINAL:
+# LIBS	:=	-lSDL2_ttf -lfreetype -lbz2 -lSDL2_image -lpng -lz -ljpeg -lSDL2 \
+# 			-llua -lphysfs -lmodplug -lvorbisfile -lvorbis -logg \
+# 			-lglad -lEGL -lglapi -ldrm_nouveau -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
