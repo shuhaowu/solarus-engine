@@ -4,6 +4,11 @@
 #include <SDL_opengles2.h>
 #include <stdio.h>
 #define SOLARUS_GL_ES
+#elif __SWITCH__
+#define SOLARUS_GL_ES
+#include <SDL_opengles2.h>
+#include <stdio.h>
+//#include <SDL_video.h>
 #else
 #include "solarus/third_party/glad/glad.h" //Only include glad to have GL work
 #include <SDL_video.h>
@@ -11,7 +16,7 @@
 
 namespace Solarus { namespace Gl {
     inline std::pair<GLint, GLint> getVersion() {
-#ifdef ANDROID
+#if defined(ANDROID) || defined(__SWITCH__)
       GLint major, minor;
       const char* version = (const char*)glGetString(GL_VERSION);
       sscanf(version,"OpenGL ES %d.%d", &major, &minor);
@@ -24,7 +29,7 @@ namespace Solarus { namespace Gl {
     }
 
     inline bool load() {
-#ifdef ANDROID
+#if defined(ANDROID) || defined(__SWITCH__)
         return true;
 #elif SOLARUS_GL_ES
         return gladLoadGLES2Loader(SDL_GL_GetProcAddress);

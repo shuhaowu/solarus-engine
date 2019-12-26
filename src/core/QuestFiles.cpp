@@ -412,13 +412,6 @@ SOLARUS_API std::vector<std::string> data_file_list_dir(
   if (PHYSFS_exists(dir_path.c_str())) {
     char** files = PHYSFS_enumerateFiles(dir_path.c_str());
     for (char** file = files; *file != nullptr; file++) {
-
-      PHYSFS_Stat statbuf;
-      PHYSFS_stat((dir_path + "/" + *file).c_str(), &statbuf);
-      bool is_directory = (statbuf.filetype == PHYSFS_FILETYPE_DIRECTORY);
-      bool is_symlink = (statbuf.filetype == PHYSFS_FILETYPE_SYMLINK);
-      if (!is_symlink && ((list_files && !is_directory)
-              || (list_directories && is_directory)))
         result.push_back(std::string(*file));
     }
     PHYSFS_freeList(files);

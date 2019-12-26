@@ -125,7 +125,7 @@ void create_window(const Arguments& args) {
         context.geometry.wanted_quest_size.height,
         SDL_WINDOW_HIDDEN | SDL_WINDOW_RESIZABLE | (force_software ? 0 : SDL_WINDOW_OPENGL)
 #ifdef __SWITCH__
-        | SDL_WINDOW_FULL
+        | SDL_WINDOW_FULLSCREEN
 #endif
         );
 
@@ -157,10 +157,11 @@ void create_window(const Arguments& args) {
  */
 void initialize_software_video_modes() {
   context.all_video_modes.emplace_back(
-        "normal",
-        context.geometry.quest_size * 2,
+        "blah",
+        context.geometry.quest_size,
         nullptr
         );
+#ifndef __SWITCH__
   context.all_video_modes.emplace_back(
         "scale2x",
         context.geometry.quest_size * 2,
@@ -176,7 +177,6 @@ void initialize_software_video_modes() {
         context.geometry.quest_size * 3,
         std::unique_ptr<SoftwarePixelFilter>(new Hq3xFilter())
         );
-#ifndef __SWITCH__
   context.all_video_modes.emplace_back(
         "hq4x",
         context.geometry.quest_size * 4,

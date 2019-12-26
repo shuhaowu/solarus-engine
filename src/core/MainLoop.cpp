@@ -42,6 +42,8 @@
 #include <string>
 #include <thread>
 
+#include <SDL.h>
+
 #ifdef __SWITCH__
 #include <switch.h>
 #endif

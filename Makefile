@@ -31,13 +31,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	solarus
 BUILD		:=	build
-SOURCES		:=	src src/entities src/hero src/lowlevel src/lua src/main src/movements \
+SOURCES		:=	src src/audio src/core src/entities src/graphics src/graphics/sdlrenderer src/graphics/glrenderer src/hero src/lua src/main src/movements \
 				src/third_party/snes_spc src/third_party/mojoAL src/third_party/hqx
 DATA		:=	data
-INCLUDES	:=	include include/solarus include/solarus/hero include/solarus/entities \
-				include/solarus/lowlevel include/solarus/lua include/solarus/movements \
-				include/solarus/containers include/solarus/third_party/snes_spc \
-				include/solarus/third_party/mojoAL/AL include/solarus/third_party
+INCLUDES := include include/solarus/third_party/snes_spc include/solarus/third_party/mojoAL/AL include/solarus/third_party
+#INCLUDES	:=	include include/solarus include/solarus/hero include/solarus/entities \
+#				include/solarus/lowlevel include/solarus/lua include/solarus/movements \
+#				include/solarus/containers include/solarus/third_party/snes_spc \
+#				include/solarus/third_party/mojoAL/AL include/solarus/third_party
 EXEFS_SRC	:=	exefs_src
 
 APP_TITLE	:=	Solarus Engine
@@ -59,7 +60,7 @@ CXXFLAGS	:= $(CFLAGS) -frtti -fexceptions -std=c++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := `$(DEVKITPRO)/portlibs/switch/bin/aarch64-none-elf-pkg-config lua SDL2_ttf SDL2_image physfs libmodplug vorbisfile --libs-only-l`
+LIBS := `$(DEVKITPRO)/portlibs/switch/bin/aarch64-none-elf-pkg-config lua SDL2_ttf SDL2_image glesv2 physfs libmodplug vorbisfile --libs-only-l`
 
 # ORIGINAL:
 # LIBS	:=	-lSDL2_ttf -lfreetype -lbz2 -lSDL2_image -lpng -lz -ljpeg -lSDL2 \
